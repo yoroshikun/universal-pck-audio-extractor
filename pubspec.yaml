@@ -1,10 +1,10 @@
 name: universal_pck_audio_extractor
 description: Multi platform, Multi core, Multi format, Audio Converter for .pck files into various workable files, written in dart!
 version: 0.1.0
-homepage: https://github.com/yoroshikun/universal_pck_audio_extractor/
+homepage: https://github.com/yoroshikun/universal-pck-audio-extractor/
 
 environment:
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: '>=2.10.0 <3.0.0'
 
 dependencies:
   dcli: ^0.37.0

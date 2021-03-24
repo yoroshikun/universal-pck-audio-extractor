@@ -4,16 +4,13 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 
 class RequirementInstaller {
-  String platform;
-  double downloadProgress = 0.0;
+  double _downloadProgress = 0.0;
   bool _shouldDownloadBMSScripts = false;
   bool _shouldDownloadVGMStream = false;
   bool _shouldDownloadFFMPEG = false;
   bool _shouldDownloadBMS = false;
 
-  RequirementInstaller(String platform) {
-    this.platform = platform;
-
+  RequirementInstaller() {
     _check();
   }
 
@@ -27,7 +24,7 @@ class RequirementInstaller {
       ], 'resources/lib/quickbms/scripts/');
     }
 
-    if (platform == 'windows') {
+    if (Platform.isWindows) {
       if (_shouldDownloadVGMStream) {
         _downloadAndExtract([
           FetchUrl(
@@ -69,7 +66,7 @@ class RequirementInstaller {
       }
     }
 
-    if (platform == 'macos') {
+    if (Platform.isMacOS) {
       if (_shouldDownloadVGMStream) {
         run('brew install vgmstream');
       }
@@ -88,7 +85,7 @@ class RequirementInstaller {
       }
     }
 
-    if (platform == 'linux') {
+    if (Platform.isLinux) {
       if (_shouldDownloadVGMStream) {
         run('brew install vgmstream');
       }
@@ -117,13 +114,13 @@ class RequirementInstaller {
   bool _check() {
     _shouldDownloadBMSScripts = !exists('resources/lib/quickbms/scripts/');
 
-    if (platform == 'windows') {
+    if (Platform.isWindows) {
       _shouldDownloadVGMStream = !exists('resources/lib/vgmstream/');
       _shouldDownloadFFMPEG = !exists('resources/lib/ffmpeg/');
       _shouldDownloadBMS = !exists('resources/lib/quickbms/quickbms.exe');
     }
 
-    if (platform == 'macos' || platform == 'linux') {
+    if (Platform.isMacOS || Platform.isLinux) {
       if (which('brew').notfound) {
         print('You must install brew to use this script');
         exit(0);
@@ -186,17 +183,18 @@ class RequirementInstaller {
   }
 
   void _showProgress(FetchProgress progress) {
-    if (progress.progress >= downloadProgress + 0.05 ||
+    if (progress.progress >= _downloadProgress + 0.05 ||
+        progress.progress <= _downloadProgress - 0.05 ||
         progress.progress == 1.0) {
       print('Downloading ' +
           progress.fetch.url +
           ': ' +
-          (progress.progress * 100).toString() +
+          (progress.progress * 100).toStringAsFixed(2) +
           '% | ' +
           (progress.downloaded / 1000000).toStringAsFixed(2) +
           'MB');
 
-      downloadProgress = progress.progress;
+      _downloadProgress = progress.progress;
     }
   }
 }

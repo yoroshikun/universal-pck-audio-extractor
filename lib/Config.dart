@@ -1,22 +1,6 @@
-import 'dart:io' show File, Platform;
+import 'dart:io' show File;
 import 'dart:convert' show json;
 import 'package:dcli/dcli.dart' show printerr;
-
-String determinePlatform() {
-  if (Platform.isWindows) {
-    return 'windows';
-  }
-
-  if (Platform.isMacOS) {
-    return 'macos';
-  }
-
-  if (Platform.isLinux) {
-    return 'linux';
-  }
-
-  return 'unsupported';
-}
 
 /// Static class to handle loading and parsing of application config
 class Config {
@@ -24,17 +8,16 @@ class Config {
   static Map flac;
   static Map mp3;
   static String bms_script;
-  static String platform = determinePlatform();
 
-  Future<void> _init() async {
+  static void init() {
     final configFile = File('resources/config.json');
 
     try {
-      if (!await configFile.exists()) {
+      if (!configFile.existsSync()) {
         throw 'File does not exist at: $configFile';
       }
 
-      final configAsString = await configFile.readAsString();
+      final configAsString = configFile.readAsStringSync();
       final decoded = json.decode(configAsString);
 
       cleanup = decoded['cleanup'];
@@ -44,11 +27,5 @@ class Config {
     } catch (err) {
       printerr('Error loading config file: $err');
     }
-  }
-
-  static Future<void> init() async {
-    var initialConfig = Config();
-
-    await initialConfig._init();
   }
 }
