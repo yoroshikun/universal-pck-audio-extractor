@@ -7,7 +7,8 @@
     {
       "name": "universal_pck_audio_extractor",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "program": "bin/universal_pck_audio_extractor.dart"
     }
   ]
 }

@@ -126,7 +126,8 @@ class RequirementInstaller {
         exit(0);
       }
 
-      _shouldDownloadVGMStream = which('vgmstream123').notfound;
+      _shouldDownloadVGMStream =
+          which('vgmstream123').notfound || which('vgmstream_cli').notfound;
       _shouldDownloadFFMPEG = which('ffmpeg').notfound;
       _shouldDownloadBMS = !exists('resources/lib/quickbms/quickbms');
     }

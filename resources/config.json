@@ -1,12 +1,12 @@
 {
   "cleanup": false,
   "flac": {
-    "encode": true,
+    "encode": false,
     "sample_rate": 44100,
     "bit_depth": 16
   },
   "mp3": {
-    "encode": true,
+    "encode": false,
     "sample_rate": 44100,
     "bit_rate": 320
   },

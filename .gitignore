@@ -10,6 +10,7 @@ doc/api/
 
 # Local dev resources
 resources/input/*
+!resources/input/.gitkeep
 resources/output/*
 resources/processing/*
 resources/lib/*
