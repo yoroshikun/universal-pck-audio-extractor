@@ -14,3 +14,4 @@ resources/input/*
 resources/output/*
 resources/processing/*
 resources/lib/*
+!resources/lib/quickbms/scripts/wavescan.bms

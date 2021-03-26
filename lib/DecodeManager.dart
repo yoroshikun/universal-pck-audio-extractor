@@ -7,7 +7,7 @@ class DecodeManager {
   List<Decoder> decoders = [];
 
   DecodeManager() {
-    var files = find('resources/input/*.pck').toList();
+    var files = find('*.pck', root: 'resources/input/').toList();
 
     files.forEach((element) {
       decoders.add(Decoder(element));
@@ -19,11 +19,11 @@ class DecodeManager {
     decoders.forEach((element) => element.decodewem());
     decoders.forEach((element) => element.encodewav());
 
-    if (Config.flac['enabled']) {
+    if (Config.flac['encode']) {
       decoders.forEach((element) => element.encodeflac());
     }
 
-    if (Config.mp3['enabled']) {
+    if (Config.mp3['encode']) {
       decoders.forEach((element) => element.encodemp3());
     }
 

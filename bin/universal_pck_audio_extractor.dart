@@ -11,9 +11,9 @@ void main(List<String> arguments) {
   var ready = requirementInstaller.ensure();
 
   if (ready) {
-    print('Yay everything is ready for decoding');
+    print('Requirement check passed');
   } else {
-    print('Oh no you dont have everything ready for decoding');
+    print('Requirement check failed, please restart the program');
     return;
   }
 

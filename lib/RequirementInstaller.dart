@@ -22,6 +22,9 @@ class RequirementInstaller {
             saveToPath: 'temp/quickbms_scripts.zip',
             progress: _showProgress)
       ], 'resources/lib/quickbms/scripts/');
+
+      copy('resources/wavescan.bms',
+          'resources/lib/quickbms/scripts/wavescan.bms');
     }
 
     if (Platform.isWindows) {

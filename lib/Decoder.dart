@@ -15,28 +15,34 @@ class Decoder {
   Decoder(String path) {
     this.path = path;
 
-    var dir = path.split('/').removeLast().replaceFirst('.pck', '/');
+    var dir = basenameWithoutExtension(path);
 
-    wemDir = 'resources/processing/wem/$dir/';
-    wavDir = 'resources/output/wav/$dir/';
-    flacDir = 'resources/output/flac/$dir/';
-    mp3Dir = 'resources/output/mp3/$dir/';
+    wemDir = join('resources', 'processing', dir);
+    wavDir = join('resources', 'output', 'wav', dir);
+    flacDir = join('resources', 'output', 'flac', dir);
+    mp3Dir = join('resources', 'output', 'mp3', dir);
   }
 
   void decodewem() {
-    var script = Config.bms_script;
+    var script =
+        join('resources', 'lib', 'quickbms', 'scripts', Config.bms_script);
+    var quickbms = absolute('resources/lib/quickbms/quickbms');
 
-    if (Platform.isWindows) {
-      run('resources/lib/quickbms/quickbms.exe $script $path $wemDir');
-    } else {
-      run('resources/lib/quickbms/quickbms $script $path $wemDir');
+    if (!exists(wemDir)) {
+      createDir(wemDir, recursive: true);
     }
 
-    find('$wemDir/*.wem').toList().forEach((element) {
-      var fileName = element.split('/').removeLast().replaceFirst('.wem', '');
-      var wavPath = '$wavDir${fileName.replaceFirst('wem', 'wav')}';
-      var flacPath = '$flacDir${fileName.replaceFirst('wav', 'flac')}';
-      var mp3Path = '$mp3Dir${fileName.replaceFirst('wav', 'mp3')}';
+    if (Platform.isWindows) {
+      start('$quickbms.exe $script $path $wemDir');
+    } else {
+      start('$quickbms $script $path $wemDir');
+    }
+
+    find('*.wav', root: wemDir).toList().forEach((element) {
+      var fileName = basenameWithoutExtension(element);
+      var wavPath = join(wavDir, fileName + '.wav');
+      var flacPath = join(flacDir, fileName + '.flac');
+      var mp3Path = join(mp3Dir, fileName + '.mp3');
 
       files.add({
         'wemPath': element,
@@ -48,34 +54,62 @@ class Decoder {
   }
 
   void encodewav() {
+    if (!exists(wavDir)) {
+      createDir(wavDir, recursive: true);
+    }
+
+    // List<String> commandList = [];
+
     files.forEach((file) {
+      // Isolate.spawn(run_isolate_command,
+      //     'resources/lib/vgmstream/vgmstream_cli.exe -o ${file['wavPath']} ${file['wemPath']}');
       if (Platform.isWindows) {
-        run('resources/lib/vgmstream/vgmstream_cli.exe -o ${file['wavPath']} ${file['wemPath']}');
+        start(
+            'resources/lib/vgmstream/vgmstream_cli.exe -o ${file['wavPath']} ${file['wemPath']}');
       } else {
-        run('vgmstream_cli -o ${file['wavPath']} ${file['wemPath']}');
+        start('vgmstream_cli -o ${file['wavPath']} ${file['wemPath']}');
       }
+      // if (Platform.isWindows) {
+      //   commandList.add(
+      //       'resources/lib/vgmstream/vgmstream_cli.exe -o ${file['wavPath']} ${file['wemPath']}');
+      // } else {
+      //   commandList
+      //       .add('vgmstream_cli -o ${file['wavPath']} ${file['wemPath']}');
+      // }
     });
+
+    // await isolate_command_chunk(commandList);
   }
 
   void encodeflac() {
+    if (!exists(flacDir)) {
+      createDir(flacDir, recursive: true);
+    }
+
     files.forEach((file) {
       if (Platform.isWindows) {
-        run('resources/lib/ffmpeg/ffmpeg.exe -i ${file['wavPath']} -y -af aformat=s${Config.flac['bit_depth']}:${Config.flac['sample_rate']} ${file['flacPath']}');
+        start(
+            'resources/lib/ffmpeg/ffmpeg.exe -i ${file['wavPath']} -y -af aformat=s${Config.flac['bit_depth']}:${Config.flac['sample_rate']} ${file['flacPath']}');
       } else {
-        run('ffmpeg -i ${file['wavPath']} -y -af aformat=s${Config.flac['bit_depth']}:${Config.flac['sample_rate']} ${file['flacPath']}');
+        start(
+            'ffmpeg -i ${file['wavPath']} -y -af aformat=s${Config.flac['bit_depth']}:${Config.flac['sample_rate']} ${file['flacPath']}');
       }
     });
   }
 
   void encodemp3() {
+    if (!exists(mp3Dir)) {
+      createDir(mp3Dir, recursive: true);
+    }
+
     files.forEach((file) {
       if (Platform.isWindows) {
-        run('resources/lib/ffmpeg/ffmpeg.exe -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['mp3Path']}');
+        start(
+            'resources/lib/ffmpeg/ffmpeg.exe -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['mp3Path']}');
       } else {
-        run('ffmpeg -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['flacPath']}');
+        start(
+            'ffmpeg -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['flacPath']}');
       }
     });
   }
-
-  // Isolates
 }

@@ -1,14 +1,14 @@
 {
-  "cleanup": false,
+  "cleanup": true,
   "flac": {
     "encode": false,
     "sample_rate": 44100,
     "bit_depth": 16
   },
   "mp3": {
-    "encode": false,
+    "encode": true,
     "sample_rate": 44100,
     "bit_rate": 320
   },
-  "bms_script": "wavscan.bms"
+  "bms_script": "wavescan.bms"
 }
