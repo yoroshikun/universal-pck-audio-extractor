@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:dcli/dcli.dart';
+import 'package:universal_pck_audio_extractor/command_pool.dart';
 
 import 'Config.dart';
 
 class Decoder {
+  String name = '';
   String path = '';
-  String wemDir = '';
+  String processingDir = '';
   String wavDir = '';
   String flacDir = '';
   String mp3Dir = '';
@@ -17,28 +19,29 @@ class Decoder {
 
     var dir = basenameWithoutExtension(path);
 
-    wemDir = join('resources', 'processing', dir);
+    name = dir;
+    processingDir = join('resources', 'processing', dir);
     wavDir = join('resources', 'output', 'wav', dir);
     flacDir = join('resources', 'output', 'flac', dir);
     mp3Dir = join('resources', 'output', 'mp3', dir);
   }
 
-  void decodewem() {
+  Future<void> decodewem() async {
     var script =
         join('resources', 'lib', 'quickbms', 'scripts', Config.bms_script);
     var quickbms = absolute('resources/lib/quickbms/quickbms');
 
-    if (!exists(wemDir)) {
-      createDir(wemDir, recursive: true);
+    if (!exists(processingDir)) {
+      createDir(processingDir, recursive: true);
     }
 
     if (Platform.isWindows) {
-      start('$quickbms.exe $script $path $wemDir');
+      start('$quickbms.exe $script $path $processingDir');
     } else {
-      start('$quickbms $script $path $wemDir');
+      start('$quickbms $script $path $processingDir');
     }
 
-    find('*.wav', root: wemDir).toList().forEach((element) {
+    find('*.wav', root: processingDir).toList().forEach((element) {
       var fileName = basenameWithoutExtension(element);
       var wavPath = join(wavDir, fileName + '.wav');
       var flacPath = join(flacDir, fileName + '.flac');
@@ -53,63 +56,64 @@ class Decoder {
     });
   }
 
-  void encodewav() {
+  Future<void> encodewav() async {
     if (!exists(wavDir)) {
       createDir(wavDir, recursive: true);
     }
 
-    // List<String> commandList = [];
+    var vgmstream_cli = absolute('resources/lib/vgmstream/vgmstream_cli.exe');
+    var commands = <String>[];
 
     files.forEach((file) {
-      // Isolate.spawn(run_isolate_command,
-      //     'resources/lib/vgmstream/vgmstream_cli.exe -o ${file['wavPath']} ${file['wemPath']}');
       if (Platform.isWindows) {
-        start(
-            'resources/lib/vgmstream/vgmstream_cli.exe -o ${file['wavPath']} ${file['wemPath']}');
+        commands.add('$vgmstream_cli -o ${file['wavPath']} ${file['wemPath']}');
       } else {
-        start('vgmstream_cli -o ${file['wavPath']} ${file['wemPath']}');
+        commands.add('vgmstream_cli -o ${file['wavPath']} ${file['wemPath']}');
       }
-      // if (Platform.isWindows) {
-      //   commandList.add(
-      //       'resources/lib/vgmstream/vgmstream_cli.exe -o ${file['wavPath']} ${file['wemPath']}');
-      // } else {
-      //   commandList
-      //       .add('vgmstream_cli -o ${file['wavPath']} ${file['wemPath']}');
-      // }
     });
 
-    // await isolate_command_chunk(commandList);
+    await command_pool(commands, name, 'wav');
   }
 
-  void encodeflac() {
+  Future<void> encodeflac() async {
     if (!exists(flacDir)) {
       createDir(flacDir, recursive: true);
     }
 
+    var ffmpeg = absolute('resources/lib/ffmpeg/ffmpeg.exe');
+    var commands = <String>[];
+
     files.forEach((file) {
       if (Platform.isWindows) {
-        start(
-            'resources/lib/ffmpeg/ffmpeg.exe -i ${file['wavPath']} -y -af aformat=s${Config.flac['bit_depth']}:${Config.flac['sample_rate']} ${file['flacPath']}');
+        commands.add(
+            '$ffmpeg -i ${file['wavPath']} -y -af aformat=s${Config.flac['bit_depth']}:${Config.flac['sample_rate']} ${file['flacPath']}');
       } else {
-        start(
+        commands.add(
             'ffmpeg -i ${file['wavPath']} -y -af aformat=s${Config.flac['bit_depth']}:${Config.flac['sample_rate']} ${file['flacPath']}');
       }
     });
+
+    await command_pool(commands, name, 'flac');
   }
 
-  void encodemp3() {
+  Future<void> encodemp3() async {
     if (!exists(mp3Dir)) {
       createDir(mp3Dir, recursive: true);
     }
 
+    var ffmpeg = absolute('resources/lib/ffmpeg/ffmpeg.exe');
+    var commands = <String>[];
+
     files.forEach((file) {
       if (Platform.isWindows) {
-        start(
-            'resources/lib/ffmpeg/ffmpeg.exe -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['mp3Path']}');
+        commands.add(
+            '$ffmpeg -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['mp3Path']}');
       } else {
-        start(
-            'ffmpeg -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['flacPath']}');
+        commands.add(
+            'ffmpeg -i ${file['wavPath']} -y -ar ${Config.mp3['sample_rate']} -b:a ${Config.mp3['bit_rate']}K ${file['mp3Path']}');
       }
     });
+
+    await command_pool(commands, name, 'mp3');
   }
 }

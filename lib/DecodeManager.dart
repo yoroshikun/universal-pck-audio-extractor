@@ -1,6 +1,5 @@
 import 'package:dcli/dcli.dart';
 
-import 'Config.dart';
 import 'Decoder.dart';
 
 class DecodeManager {
@@ -9,27 +8,48 @@ class DecodeManager {
   DecodeManager() {
     var files = find('*.pck', root: 'resources/input/').toList();
 
-    files.forEach((element) {
-      decoders.add(Decoder(element));
+    files.forEach((file) {
+      decoders.add(Decoder(file));
     });
   }
 
-  void decode() {
-    // Default decoding
-    decoders.forEach((element) => element.decodewem());
-    decoders.forEach((element) => element.encodewav());
+  Future<void> decodewem() async {
+    List<Future<void>> futures = [];
 
-    if (Config.flac['encode']) {
-      decoders.forEach((element) => element.encodeflac());
-    }
+    decoders.forEach((decoder) {
+      futures.add(decoder.decodewem());
+    });
 
-    if (Config.mp3['encode']) {
-      decoders.forEach((element) => element.encodemp3());
-    }
+    await Future.wait(futures);
+  }
 
-    if (Config.cleanup) {
-      deleteDir('resources/processing/');
-      deleteDir('resources/output/wav/');
-    }
+  Future<void> encodewav() async {
+    List<Future<void>> futures = [];
+
+    decoders.forEach((decoder) {
+      futures.add(decoder.encodewav());
+    });
+
+    await Future.wait(futures);
+  }
+
+  Future<void> encodeflac() async {
+    List<Future<void>> futures = [];
+
+    decoders.forEach((decoder) {
+      futures.add(decoder.encodeflac());
+    });
+
+    await Future.wait(futures);
+  }
+
+  Future<void> encodemp3() async {
+    List<Future<void>> futures = [];
+
+    decoders.forEach((decoder) {
+      futures.add(decoder.encodemp3());
+    });
+
+    await Future.wait(futures);
   }
 }

@@ -1,7 +1,7 @@
 {
   "cleanup": true,
   "flac": {
-    "encode": false,
+    "encode": true,
     "sample_rate": 44100,
     "bit_depth": 16
   },
